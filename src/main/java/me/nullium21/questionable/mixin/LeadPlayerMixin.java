@@ -4,6 +4,7 @@ import me.nullium21.questionable.PlayerEntityCustom;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.item.LeadItem;
 import net.minecraft.network.packet.s2c.play.EntityAttachS2CPacket;
 import net.minecraft.server.world.ServerWorld;
@@ -34,16 +35,21 @@ public abstract class LeadPlayerMixin implements PlayerEntityCustom {
 
         if (!(item.getItem() instanceof LeadItem)) return;
 
-        otherMixin.leashHolder = self;
+        if (item.isOf(Items.LEAD)) {
+            otherMixin.leashHolder = self;
 
-        if (!self.world.isClient && self.world instanceof ServerWorld sw) {
-            sw.getChunkManager().sendToOtherNearbyPlayers(other, new EntityAttachS2CPacket(other, self));
+            if (!self.world.isClient && self.world instanceof ServerWorld sw) {
+                sw.getChunkManager().sendToOtherNearbyPlayers(other, new EntityAttachS2CPacket(other, self));
+            }
+
+            item.decrement(1);
+
+            cir.setReturnValue(ActionResult.SUCCESS);
+            cir.cancel();
+        } else if (self.equals(other.getLeashHolder())) { // reversing .equals will cause NPEs
+            otherMixin.leashHolder = null;
+            other.dropItem(Items.LEAD);
         }
-
-        item.decrement(1);
-
-        cir.setReturnValue(ActionResult.SUCCESS);
-        cir.cancel();
     }
 
     @Override
