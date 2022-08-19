@@ -5,7 +5,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.item.LeadItem;
 import net.minecraft.network.packet.s2c.play.EntityAttachS2CPacket;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.MutableText;
@@ -35,9 +34,7 @@ public abstract class PlayerEntityMixin implements PlayerEntityCustom {
         PlayerEntity self = (PlayerEntity) (Object) this;
         ItemStack item = self.getStackInHand(hand);
 
-        if (!(item.getItem() instanceof LeadItem)) return;
-
-        if (item.isOf(Items.LEAD)) {
+        if (item.isOf(Items.LEAD) && other.getLeashHolder() == null) {
             other.attachLeash(self);
 
             item.decrement(1);
