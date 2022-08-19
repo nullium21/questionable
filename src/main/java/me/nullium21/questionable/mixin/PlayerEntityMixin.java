@@ -8,6 +8,8 @@ import net.minecraft.item.Items;
 import net.minecraft.item.LeadItem;
 import net.minecraft.network.packet.s2c.play.EntityAttachS2CPacket;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerEntity.class)
-public abstract class LeadPlayerMixin implements PlayerEntityCustom {
+public abstract class PlayerEntityMixin implements PlayerEntityCustom {
 
     private Entity leashHolder;
 
@@ -28,7 +30,7 @@ public abstract class LeadPlayerMixin implements PlayerEntityCustom {
         if (isSpectator()) return; // fall-through to method
 
         if (!(entity instanceof PlayerEntity other)) return;
-        LeadPlayerMixin otherMixin = (LeadPlayerMixin) (Object) other;
+        PlayerEntityMixin otherMixin = (PlayerEntityMixin) (Object) other;
 
         PlayerEntity self = (PlayerEntity) (Object) this;
         ItemStack item = self.getStackInHand(hand);
@@ -48,6 +50,16 @@ public abstract class LeadPlayerMixin implements PlayerEntityCustom {
 
             cir.setReturnValue(ActionResult.SUCCESS);
             cir.cancel();
+        }
+    }
+
+    @Inject(method = "getName", at = @At("TAIL"), cancellable = true)
+    private void getName(CallbackInfoReturnable<Text> cir) {
+        PlayerEntity self = (PlayerEntity) (Object) this;
+
+        if (self.hasCustomName() && self.getCustomName() != null) {
+            MutableText prefix = self.getCustomName().copy().append(" ");
+            cir.setReturnValue(prefix.append(cir.getReturnValue()));
         }
     }
 
