@@ -1,6 +1,7 @@
 package me.nullium21.questionable.mixin;
 
 import me.nullium21.questionable.PlayerEntityCustom;
+import me.nullium21.questionable.Questionable;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -76,10 +77,13 @@ public abstract class PlayerEntityMixin implements PlayerEntityCustom {
     public void attachLeash(Entity holder) {
         PlayerEntity self = (PlayerEntity) (Object) this;
 
+        Questionable.LOGGER.debug("{} attaching leash to {}", holder.getUuidAsString(), self.getUuidAsString());
+
         leashHolder = holder;
 
         if (!self.world.isClient && self.world instanceof ServerWorld sw) {
             sw.getChunkManager().sendToOtherNearbyPlayers(self, new EntityAttachS2CPacket(self, holder));
+            Questionable.LOGGER.debug("sent packet EntityAttachS2c: {}, {}", self.getUuidAsString(), holder.getUuidAsString());
         }
     }
 }
