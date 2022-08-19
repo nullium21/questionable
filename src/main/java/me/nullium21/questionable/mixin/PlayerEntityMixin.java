@@ -12,16 +12,19 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.Vec3d;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin implements PlayerEntityCustom {
 
     private Entity leashHolder;
+    private long leashAttachedAt = -1;
 
     @Shadow public abstract boolean isSpectator();
 
@@ -42,8 +45,11 @@ public abstract class PlayerEntityMixin implements PlayerEntityCustom {
 
             cir.setReturnValue(ActionResult.SUCCESS);
             cir.cancel();
-        } else if (self.equals(other.getLeashHolder())) { // reversing .equals will cause NPEs
+        } else if (self.equals(other.getLeashHolder()) && (entity.world.getTime() - otherMixin.leashAttachedAt) > 5) { // reversing .equals will cause NPEs
+            Questionable.LOGGER.debug("removing leash from {}", other.getUuidAsString());
+
             otherMixin.leashHolder = null;
+            otherMixin.leashAttachedAt = -1;
             other.dropItem(Items.LEAD);
 
             cir.setReturnValue(ActionResult.SUCCESS);
@@ -68,6 +74,23 @@ public abstract class PlayerEntityMixin implements PlayerEntityCustom {
         }
     }
 
+    @Inject(method = "tickMovement", at = @At("HEAD"))
+    private void tickMovement(CallbackInfo ci) {
+        if (leashHolder == null) return;
+
+        PlayerEntity self = (PlayerEntity) (Object) this;
+
+        Vec3d dist = leashHolder.getPos().subtract(self.getPos());
+
+        if (dist.length() >= 20) {
+            self.teleport(leashHolder.getX(), leashHolder.getY(), leashHolder.getZ());
+        } else if (dist.length() >= 7) {
+            self.setVelocity(dist.multiply(.05));
+            self.velocityModified = true;
+            self.velocityDirty = true;
+        }
+    }
+
     @Override
     public Entity getLeashHolder() {
         return leashHolder;
@@ -80,6 +103,7 @@ public abstract class PlayerEntityMixin implements PlayerEntityCustom {
         Questionable.LOGGER.debug("{} attaching leash to {}", holder.getUuidAsString(), self.getUuidAsString());
 
         leashHolder = holder;
+        leashAttachedAt = holder.world.getTime();
 
         if (!self.world.isClient && self.world instanceof ServerWorld sw) {
             sw.getChunkManager().sendToOtherNearbyPlayers(self, new EntityAttachS2CPacket(self, holder));
