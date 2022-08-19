@@ -4,6 +4,7 @@
   "package": "me.nullium21.questionable.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "LeadItemMixin",
     "LeadPlayerMixin",
     "NameTagMixin"
   ],

@@ -36,11 +36,7 @@ public abstract class LeadPlayerMixin implements PlayerEntityCustom {
         if (!(item.getItem() instanceof LeadItem)) return;
 
         if (item.isOf(Items.LEAD)) {
-            otherMixin.leashHolder = self;
-
-            if (!self.world.isClient && self.world instanceof ServerWorld sw) {
-                sw.getChunkManager().sendToOtherNearbyPlayers(other, new EntityAttachS2CPacket(other, self));
-            }
+            other.attachLeash(self);
 
             item.decrement(1);
 
@@ -58,5 +54,16 @@ public abstract class LeadPlayerMixin implements PlayerEntityCustom {
     @Override
     public Entity getLeashHolder() {
         return leashHolder;
+    }
+
+    @Override
+    public void attachLeash(Entity holder) {
+        PlayerEntity self = (PlayerEntity) (Object) this;
+
+        leashHolder = holder;
+
+        if (!self.world.isClient && self.world instanceof ServerWorld sw) {
+            sw.getChunkManager().sendToOtherNearbyPlayers(self, new EntityAttachS2CPacket(self, holder));
+        }
     }
 }
