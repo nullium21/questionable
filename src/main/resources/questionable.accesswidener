@@ -1,0 +1,4 @@
+accessWidener	v1  named
+
+accessible  method  net/minecraft/client/render/entity/EntityRenderer    getBlockLight  (Lnet/minecraft/entity/Entity;Lnet/minecraft/util/math/BlockPos;)I
+accessible  method  net/minecraft/client/render/entity/MobEntityRenderer    renderLeashPiece    (Lnet/minecraft/client/render/VertexConsumer;Lnet/minecraft/util/math/Matrix4f;FFFIIIIFFFFIZ)V

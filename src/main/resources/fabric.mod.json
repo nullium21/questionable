@@ -1,29 +1,27 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "questionable",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Questionable",
+  "description": "A mod with some... questionable content, hence the name",
   "authors": [
-    "Me!"
+    "nullium21"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/nullium21/questionable"
   },
 
-  "license": "CC0-1.0",
   "icon": "assets/modid/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "me.nullium21.questionable.Questionable"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "questionable.mixins.json"
   ],
 
   "depends": {
@@ -32,7 +30,12 @@
     "minecraft": "~1.19",
     "java": ">=17"
   },
-  "suggests": {
-    "another-mod": "*"
-  }
+
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/entity/player/PlayerEntity": ["me/nullium21/questionable/PlayerEntityCustom"]
+    }
+  },
+
+  "accessWidener": "questionable.accesswidener"
 }
