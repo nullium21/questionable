@@ -49,6 +49,9 @@ public abstract class LeadPlayerMixin implements PlayerEntityCustom {
         } else if (self.equals(other.getLeashHolder())) { // reversing .equals will cause NPEs
             otherMixin.leashHolder = null;
             other.dropItem(Items.LEAD);
+
+            cir.setReturnValue(ActionResult.SUCCESS);
+            cir.cancel();
         }
     }
 
