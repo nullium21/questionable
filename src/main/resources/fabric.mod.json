@@ -12,7 +12,7 @@
     "sources": "https://github.com/nullium21/questionable"
   },
 
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/questionable/icon.png",
 
   "environment": "*",
   "entrypoints": {
