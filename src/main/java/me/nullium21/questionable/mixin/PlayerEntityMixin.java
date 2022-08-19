@@ -47,6 +47,13 @@ public abstract class PlayerEntityMixin implements PlayerEntityCustom {
 
             cir.setReturnValue(ActionResult.SUCCESS);
             cir.cancel();
+        } else if (item.isOf(Items.SHEARS) && other.hasCustomName()) {
+            item.damage(1, self, unused -> {});
+
+            other.setCustomName(null);
+
+            cir.setReturnValue(ActionResult.SUCCESS);
+            cir.cancel();
         }
     }
 
