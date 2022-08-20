@@ -3,16 +3,22 @@ package me.nullium21.questionable.mixin;
 import me.nullium21.questionable.PlayerEntityCustom;
 import me.nullium21.questionable.Questionable;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.Saddleable;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.s2c.play.EntityAttachS2CPacket;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,10 +27,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PlayerEntity.class)
-public abstract class PlayerEntityMixin implements PlayerEntityCustom {
+public abstract class PlayerEntityMixin extends LivingEntity implements PlayerEntityCustom, Saddleable {
 
     private Entity leashHolder;
     private long leashAttachedAt = -1;
+    private boolean isSaddled;
+
+    protected PlayerEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
+        super(entityType, world);
+    }
 
     @Shadow public abstract boolean isSpectator();
 
@@ -45,6 +56,18 @@ public abstract class PlayerEntityMixin implements PlayerEntityCustom {
 
             cir.setReturnValue(ActionResult.SUCCESS);
             cir.cancel();
+        } else if (item.isOf(Items.SHEARS) && other.hasCustomName()) {
+            item.damage(1, self, unused -> {});
+
+            other.setCustomName(null);
+
+            cir.setReturnValue(ActionResult.SUCCESS);
+            cir.cancel();
+        } else if (item.isOf(Items.SADDLE) && !other.hasPassengers()) {
+            self.startRiding(other);
+
+            cir.setReturnValue(ActionResult.SUCCESS);
+            cir.cancel();
         } else if (self.equals(other.getLeashHolder()) && (entity.world.getTime() - otherMixin.leashAttachedAt) > 5) { // reversing .equals will cause NPEs
             Questionable.LOGGER.debug("removing leash from {}", other.getUuidAsString());
 
@@ -54,14 +77,13 @@ public abstract class PlayerEntityMixin implements PlayerEntityCustom {
 
             cir.setReturnValue(ActionResult.SUCCESS);
             cir.cancel();
-        } else if (item.isOf(Items.SHEARS) && other.hasCustomName()) {
-            item.damage(1, self, unused -> {});
-
-            other.setCustomName(null);
-
-            cir.setReturnValue(ActionResult.SUCCESS);
-            cir.cancel();
         }
+    }
+
+    @Override
+    public double getMountedHeightOffset() {
+        PlayerEntity self = (PlayerEntity) (Object) this;
+        return self.getHeight();
     }
 
     @Inject(method = "getName", at = @At("TAIL"), cancellable = true)
@@ -109,5 +131,20 @@ public abstract class PlayerEntityMixin implements PlayerEntityCustom {
             sw.getChunkManager().sendToOtherNearbyPlayers(self, new EntityAttachS2CPacket(self, holder));
             Questionable.LOGGER.debug("sent packet EntityAttachS2c: {}, {}", self.getUuidAsString(), holder.getUuidAsString());
         }
+    }
+
+    @Override
+    public boolean canBeSaddled() {
+        return !isSaddled;
+    }
+
+    @Override
+    public void saddle(@Nullable SoundCategory sound) {
+        isSaddled = true;
+    }
+
+    @Override
+    public boolean isSaddled() {
+        return isSaddled;
     }
 }
