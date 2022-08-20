@@ -20,8 +20,10 @@ Warning: some features require the mod to be on both server _and_ the clients, s
 
 ### Optional client-side (but better with it)
 
-* **Nametagging**: give that one rather bad-behaved friend a `Baka!` nickname near their username~
-* **Leashing**: force someone to follow you wherever you'd go~ and yes, they will teleport to you if you're far away enough.
+* **Nametagging**: give that one rather bad-behaved friend a `Baka!` nickname near their username~  
+  Client-side required for the name to show up.
+* **Leashing**: force someone to follow you wherever you'd go~ and yes, they will teleport to you if you're far away enough.  
+  Client-side required for the leash to show up.
 
 ### Has to be everywhere
 
